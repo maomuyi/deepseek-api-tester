@@ -10,48 +10,85 @@ const page = String.raw`<!doctype html>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>DeepSeek API 测试工具</title>
   <style>
-    :root { color-scheme: light; }
+    :root {
+      color-scheme: light;
+      --bg: #f4f1ec;
+      --card: #ffffff;
+      --ink: #1a1a1a;
+      --ink-soft: #4a4a4a;
+      --ink-light: #8a8a8a;
+      --line: #d8d2c8;
+      --line-soft: #e8e2d8;
+      --accent: #c8442a;
+      --accent-dark: #a8351f;
+      --accent-soft: #f2e4dd;
+    }
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: Arial, "Microsoft YaHei", sans-serif; background: #eef0f3; color: #111827; }
+    body {
+      margin: 0;
+      font-family: "Microsoft YaHei", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      background-image:
+        radial-gradient(circle at 20% 10%, rgba(200, 68, 42, 0.04) 0%, transparent 40%),
+        radial-gradient(circle at 80% 80%, rgba(200, 154, 42, 0.04) 0%, transparent 40%);
+    }
     main { width: 100vw; height: 100vh; padding: 10px; }
     h2 { margin: 0; font-size: 17px; }
     h3 { margin: 12px 0 7px; font-size: 14px; }
     .layout { display: grid; grid-template-columns: minmax(360px, 34vw) 1fr; gap: 10px; height: 100%; }
-    .card { background: #fff; border: 1px solid #d9dee7; border-radius: 10px; padding: 12px; overflow: auto; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 0; padding: 14px; overflow: auto; }
     .result-card { display: flex; flex-direction: column; min-width: 0; }
-    label { display: block; font-weight: 700; margin: 10px 0 5px; }
-    .note { margin: 4px 0 0; color: #6b7280; font-size: 12px; line-height: 1.5; }
-    input, textarea, select { width: 100%; border: 1px solid #d1d5db; border-radius: 9px; padding: 10px 12px; font-size: 14px; line-height: 1.5; background: #fff; }
+    label { display: block; font-weight: 700; margin: 10px 0 5px; color: var(--ink-soft); font-size: 13px; }
+    .note { margin: 4px 0 0; color: var(--ink-light); font-size: 12px; line-height: 1.5; }
+    input, textarea, select { width: 100%; border: 1px solid var(--line); border-radius: 0; padding: 10px 12px; font-size: 14px; line-height: 1.5; background: #fff; color: var(--ink); }
+    input:focus, textarea:focus, select:focus { outline: 1px solid var(--accent); border-color: var(--accent); }
     textarea { min-height: 96px; resize: vertical; }
     #systemPrompt { min-height: 80px; }
     #userPrompt { min-height: 190px; }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-    button { border: 0; border-radius: 8px; padding: 9px 12px; cursor: pointer; font-weight: 700; }
+    button { font-family: "Consolas", "Courier New", monospace; border: 1px solid var(--ink); border-radius: 0; background: transparent; color: var(--ink); padding: 9px 12px; cursor: pointer; font-weight: 700; font-size: 12px; letter-spacing: .04em; transition: all .16s ease; }
     button:disabled { opacity: .65; cursor: not-allowed; }
-    .primary { background: #2563eb; color: #fff; }
-    .secondary { background: #e5e7eb; color: #111827; }
+    button:hover { background: var(--ink); color: var(--bg); }
+    .primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .primary:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
+    .secondary { background: transparent; color: var(--ink); }
     .toolbar { display: flex; justify-content: space-between; gap: 8px; align-items: center; margin-bottom: 8px; }
     .badges { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 8px 0; }
-    .badge { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 9px; padding: 8px; }
-    .badge strong { display: block; font-size: 12px; color: #6b7280; margin-bottom: 4px; }
+    .badge { background: #fbfaf8; border: 1px solid var(--line-soft); border-radius: 0; padding: 8px; }
+    .badge strong { display: block; font-size: 11px; color: var(--ink-light); margin-bottom: 4px; font-family: "Consolas", "Courier New", monospace; letter-spacing: .08em; text-transform: uppercase; }
     .badge span { font-weight: 700; }
     .status-ready { color: #0369a1; }
     .status-ok { color: #047857; }
     .status-error { color: #b91c1c; }
-    .answer { white-space: pre-wrap; word-break: break-word; background: #f8fafc; border: 1px solid #d9dee7; border-radius: 9px; padding: 14px; min-height: 260px; max-height: 40vh; overflow: auto; line-height: 1.7; font-size: 15px; }
+    .answer { white-space: pre-wrap; word-break: break-word; background: #fffdf8; border: 1px solid var(--line); border-radius: 0; padding: 14px; min-height: 260px; max-height: 40vh; overflow: auto; line-height: 1.7; font-size: 15px; }
     .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
-    .history-panel { margin-top: 10px; }
-    .history-list { display: grid; gap: 8px; margin-top: 8px; max-height: 22vh; overflow: auto; }
-    .history-item { border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px; background: #f9fafb; cursor: pointer; }
-    .history-item:hover { background: #eef2ff; }
+    .details-grid details { display: flex; flex-direction: column; min-width: 0; }
+    .summary-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+    .summary-row summary { flex: 1; }
+    .icon-btn { width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; padding: 0; font-size: 16px; line-height: 1; }
+    .drawer-backdrop { position: fixed; inset: 0; background: rgba(26, 26, 26, .28); opacity: 0; pointer-events: none; transition: opacity .18s ease; z-index: 20; }
+    .drawer-backdrop.open { opacity: 1; pointer-events: auto; }
+    .history-drawer { position: fixed; top: 0; right: 0; width: min(420px, 92vw); height: 100vh; background: var(--card); border-left: 1px solid var(--line); box-shadow: -8px 0 24px rgba(0,0,0,.16); transform: translateX(100%); transition: transform .18s ease; z-index: 21; padding: 14px; display: flex; flex-direction: column; }
+    .history-drawer.open { transform: translateX(0); }
+    .drawer-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+    .history-list { display: grid; gap: 8px; overflow: auto; flex: 1; }
+    .history-item { border: 1px solid var(--line-soft); border-radius: 0; padding: 10px; background: #fbfaf8; cursor: pointer; }
+    .history-item:hover { background: var(--accent-soft); }
     .history-item strong { display: block; margin-bottom: 4px; }
-    .history-meta { color: #6b7280; font-size: 12px; }
-    .file-list { margin-top: 8px; color: #6b7280; font-size: 12px; line-height: 1.6; }
-    pre { white-space: pre-wrap; word-break: break-word; background: #111827; color: #e5e7eb; padding: 12px; border-radius: 9px; min-height: 160px; max-height: 26vh; overflow: auto; margin: 8px 0 0; }
-    details { margin-top: 0; border: 1px solid #e5e7eb; border-radius: 9px; padding: 10px; background: #fff; }
-    summary { cursor: pointer; font-weight: 700; color: #374151; }
-    .error { color: #b91c1c; font-weight: 700; }
+    .history-meta { color: var(--ink-light); font-size: 12px; }
+    .file-list { margin-top: 8px; color: var(--ink-light); font-size: 12px; line-height: 1.6; }
+    .native-file { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+    .upload-card { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: center; border: 1px dashed var(--line); background: #fffdf8; padding: 12px; cursor: pointer; transition: border-color .16s ease, background .16s ease; }
+    .upload-card:hover { border-color: var(--accent); background: var(--accent-soft); }
+    .upload-icon { width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--ink); color: var(--accent); font-family: "Consolas", "Courier New", monospace; font-weight: 700; }
+    .upload-title { font-weight: 700; color: var(--ink); }
+    .upload-desc { color: var(--ink-light); font-size: 12px; margin-top: 2px; }
+    pre { white-space: pre-wrap; word-break: break-word; background: #111827; color: #e5e7eb; padding: 12px; border-radius: 9px; height: 230px; min-height: 230px; overflow: auto; margin: 0; }
+    details { margin-top: 0; border: 1px solid var(--line); border-radius: 0; padding: 10px; background: #fff; }
+    summary { cursor: pointer; font-weight: 700; color: var(--ink-soft); }
+    .error { color: var(--accent); font-weight: 700; }
     @media (max-width: 980px) {
       main { height: auto; }
       .layout, .details-grid { grid-template-columns: 1fr; }
@@ -101,18 +138,35 @@ const page = String.raw`<!doctype html>
         <textarea id="userPrompt" placeholder="请输入你想测试的问题">请用一句话介绍你自己。</textarea>
 
         <label for="imageInput">图片上传（预留）</label>
-        <input id="imageInput" type="file" accept="image/*" multiple />
+        <input id="imageInput" class="native-file" type="file" accept="image/*" multiple />
+        <label class="upload-card" for="imageInput">
+          <span class="upload-icon">IMG</span>
+          <span>
+            <span id="imageUploadTitle" class="upload-title">选择图片文件</span>
+            <span class="upload-desc">支持 PNG / JPG / WEBP，可多选，当前仅预留入口</span>
+          </span>
+        </label>
         <div id="imageList" class="file-list">暂不发送图片，只用于预留多模态测试入口。</div>
 
         <label for="pdfInput">PDF 上传（预留）</label>
-        <input id="pdfInput" type="file" accept="application/pdf,.pdf" />
+        <input id="pdfInput" class="native-file" type="file" accept="application/pdf,.pdf" />
+        <label class="upload-card" for="pdfInput">
+          <span class="upload-icon">PDF</span>
+          <span>
+            <span id="pdfUploadTitle" class="upload-title">选择 PDF 文件</span>
+            <span class="upload-desc">当前仅预留入口，后续可接 PDF 文本解析</span>
+          </span>
+        </label>
         <div id="pdfList" class="file-list">暂不解析 PDF，只用于预留文件测试入口。</div>
       </section>
 
       <section class="card result-card">
         <div class="toolbar">
           <h2>观察结果</h2>
-          <button class="secondary" id="copyAnswerBtn">复制回复</button>
+          <div class="actions" style="margin-top:0">
+            <button class="secondary" id="historyBtn">历史记录</button>
+            <button class="secondary" id="copyAnswerBtn">复制回复</button>
+          </div>
         </div>
 
         <div class="badges">
@@ -127,28 +181,34 @@ const page = String.raw`<!doctype html>
 
         <div class="details-grid">
           <details open>
-            <summary>请求预览（已隐藏 API Key）</summary>
-            <div class="actions">
-              <button class="secondary" id="copyRequestBtn">复制完整请求 JSON</button>
+            <div class="summary-row">
+              <summary>请求预览（已隐藏 API Key）</summary>
+              <button class="secondary icon-btn" id="copyRequestBtn" title="复制完整请求 JSON" aria-label="复制完整请求 JSON">⧉</button>
             </div>
             <pre id="requestPreview">等待调用...</pre>
           </details>
 
           <details open>
-            <summary>原始 JSON</summary>
+            <div class="summary-row">
+              <summary>原始 JSON</summary>
+            </div>
             <pre id="raw">等待调用...</pre>
           </details>
         </div>
-
-        <details open class="history-panel">
-          <summary>历史记录（仅保存在当前浏览器）</summary>
-          <div class="actions">
-            <button class="secondary" id="clearHistoryBtn">清空历史</button>
-          </div>
-          <div id="historyList" class="history-list">暂无历史记录。</div>
-        </details>
       </section>
     </div>
+
+    <div id="drawerBackdrop" class="drawer-backdrop"></div>
+    <aside id="historyDrawer" class="history-drawer" aria-hidden="true">
+      <div class="drawer-head">
+        <h2>历史记录</h2>
+        <button class="secondary icon-btn" id="closeHistoryBtn" title="关闭历史记录" aria-label="关闭历史记录">×</button>
+      </div>
+      <div class="actions">
+        <button class="secondary" id="clearHistoryBtn">清空历史</button>
+      </div>
+      <div id="historyList" class="history-list">暂无历史记录。</div>
+    </aside>
   </main>
 
   <script>
@@ -240,11 +300,13 @@ const page = String.raw`<!doctype html>
 
     $("imageInput").addEventListener("change", () => {
       const names = Array.from($("imageInput").files).map((file) => file.name + " (" + Math.round(file.size / 1024) + " KB)");
+      $("imageUploadTitle").textContent = names.length ? "已选择 " + names.length + " 个图片" : "选择图片文件";
       $("imageList").textContent = names.length ? "已选择：" + names.join("，") + "。当前版本只预留入口，暂不发送。" : "暂不发送图片，只用于预留多模态测试入口。";
     });
 
     $("pdfInput").addEventListener("change", () => {
       const file = $("pdfInput").files[0];
+      $("pdfUploadTitle").textContent = file ? file.name : "选择 PDF 文件";
       $("pdfList").textContent = file ? "已选择：" + file.name + " (" + Math.round(file.size / 1024) + " KB)。当前版本只预留入口，暂不解析。" : "暂不解析 PDF，只用于预留文件测试入口。";
     });
 
@@ -256,9 +318,19 @@ const page = String.raw`<!doctype html>
 
     $("copyRequestBtn").addEventListener("click", async () => {
       await navigator.clipboard.writeText(lastRequestJson || $("requestPreview").textContent);
-      $("copyRequestBtn").textContent = "已复制";
-      setTimeout(() => { $("copyRequestBtn").textContent = "复制完整请求 JSON"; }, 1200);
+      $("copyRequestBtn").textContent = "✓";
+      setTimeout(() => { $("copyRequestBtn").textContent = "⧉"; }, 1200);
     });
+
+    function setHistoryDrawer(open) {
+      $("historyDrawer").classList.toggle("open", open);
+      $("drawerBackdrop").classList.toggle("open", open);
+      $("historyDrawer").setAttribute("aria-hidden", open ? "false" : "true");
+    }
+
+    $("historyBtn").addEventListener("click", () => setHistoryDrawer(true));
+    $("closeHistoryBtn").addEventListener("click", () => setHistoryDrawer(false));
+    $("drawerBackdrop").addEventListener("click", () => setHistoryDrawer(false));
 
     $("clearHistoryBtn").addEventListener("click", () => {
       localStorage.removeItem(historyKey);
